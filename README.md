@@ -1,2 +1,0 @@
-# Ribbit
-language stuff
