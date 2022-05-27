@@ -57,6 +57,68 @@ class Parser {
             }
             error(tokens.get(cur - 1), "Cannot assign value to target!");
         }
+        if (match(TokenType.PLUS_EQUAL, TokenType.MINUS_EQUAL, TokenType.STAR_EQUAL, TokenType.SLASH_EQUAL, TokenType.MOD_EQUAL)) {
+            Token operator = tokens.get(cur - 1);
+            Expression val = null;
+            Token name = null;
+            if (expression.getClass() == Expression.Variable.class) {
+                if (operator.getType() == TokenType.PLUS_EQUAL) {
+                    Token op = new Token(TokenType.PLUS, "+", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.Variable)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.MINUS_EQUAL) {
+                    Token op = new Token(TokenType.MINUS, "-", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.Variable)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.STAR_EQUAL) {
+                    Token op = new Token(TokenType.STAR, "*", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.Variable)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.SLASH_EQUAL) {
+                    Token op = new Token(TokenType.SLASH, "/", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.Variable)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.MOD_EQUAL) {
+                    Token op = new Token(TokenType.MOD, "%", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.Variable)(expression)).getName();
+                }
+                return new Expression.Assign(name, val);
+            }
+            if (expression.getClass() == Expression.ArrayAccess.class) {
+                if (operator.getType() == TokenType.PLUS_EQUAL) {
+                    Token op = new Token(TokenType.PLUS, "+", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.ArrayAccess)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.MINUS_EQUAL) {
+                    Token op = new Token(TokenType.MINUS, "-", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.ArrayAccess)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.STAR_EQUAL) {
+                    Token op = new Token(TokenType.STAR, "*", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.ArrayAccess)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.SLASH_EQUAL) {
+                    Token op = new Token(TokenType.SLASH, "/", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.ArrayAccess)(expression)).getName();
+                }
+                if (operator.getType() == TokenType.MOD_EQUAL) {
+                    Token op = new Token(TokenType.MOD, "%", null, operator.getLine());
+                    val = new Expression.Binary(expression, op, primary());
+                    name = ((Expression.ArrayAccess)(expression)).getName();
+                }
+                return new Expression.Assign(name, val, ((Expression.ArrayAccess)(expression)).getIndex());            
+            }
+            error(tokens.get(cur - 1), "Cannot assign value to target!");
+        }
         return expression;
     }
 

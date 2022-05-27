@@ -53,20 +53,55 @@ class Tokenizer {
             else if (cur == ',') {
                 tokenList.add(new Token(TokenType.COMMA, ",", null, line));
             }
-            else if (cur == '+') {
+            else if (cur == '[') {
+                tokenList.add(new Token(TokenType.L_BRACKET, "[", null, line));
+            }
+            else if (cur == ']') {
+                tokenList.add(new Token(TokenType.R_BRACKET, "]", null, line));
+            }
+            else if (cur == '{') {
+                tokenList.add(new Token(TokenType.L_BRACE, "{", null, line));
+            }
+            else if (cur == '}') {
+                tokenList.add(new Token(TokenType.R_BRACE, "}", null, line));
+            }
+            else if (cur == '$') {
+                tokenList.add(new Token(TokenType.DOLLAR, "$", null, line));
+            }
+            else if (cur == '+' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.PLUS, "+", null, line));
             }
-            else if (cur == '-') {
+            else if (cur == '-' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.MINUS, "-", null, line));
             }
-            else if (cur == '*') {
+            else if (cur == '*' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.STAR, "*", null, line));
             }
-            else if (cur == '/') {
+            else if (cur == '/' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.SLASH, "/", null, line));
             }
-            else if (cur == '%') {
+            else if (cur == '%' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.MOD, "%", null, line));
+            }
+            else if (cur == '+' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
+                tokenList.add(new Token(TokenType.PLUS_EQUAL, "+=", null, line));
+                i++;
+            }
+            else if (cur == '-' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
+                tokenList.add(new Token(TokenType.MINUS_EQUAL, "-=", null, line));
+                i++;
+            }
+            else if (cur == '*' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
+                tokenList.add(new Token(TokenType.STAR_EQUAL, "*=", null, line));
+                i++;
+            }
+            else if (cur == '/' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
+                tokenList.add(new Token(TokenType.SLASH_EQUAL, "/=", null, line));
+                i++;
+            }
+            else if (cur == '%' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
+                tokenList.add(new Token(TokenType.MOD_EQUAL, "%=", null, line));
+                i++;
             }
             else if (cur == '!' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.EXCLAM, "!", null, line));
@@ -95,21 +130,6 @@ class Tokenizer {
             else if (cur == '<' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
                 tokenList.add(new Token(TokenType.LESS_EQUAL, ">=", null, line));
                 i++;
-            }
-            else if (cur == '[') {
-                tokenList.add(new Token(TokenType.L_BRACKET, "[", null, line));
-            }
-            else if (cur == ']') {
-                tokenList.add(new Token(TokenType.R_BRACKET, "]", null, line));
-            }
-            else if (cur == '{') {
-                tokenList.add(new Token(TokenType.L_BRACE, "{", null, line));
-            }
-            else if (cur == '}') {
-                tokenList.add(new Token(TokenType.R_BRACE, "}", null, line));
-            }
-            else if (cur == '$') {
-                tokenList.add(new Token(TokenType.DOLLAR, "$", null, line));
             }
             else if (cur == ' ' || cur == '\r' || cur == '\t') {
                 continue;
