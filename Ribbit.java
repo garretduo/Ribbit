@@ -8,45 +8,47 @@ import java.nio.file.*;
 import java.util.*;
 
 class Ribbit {
-    static boolean hasError = false;
-    static boolean hasRuntimeError = false;
+    static boolean hasError = false; // compile time errors
+    static boolean hasRuntimeError = false; // runtime errors
     private static Interpreter interpreter = new Interpreter();
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
+        if (args.length != 1) { // no file passed in
             System.out.println("Usage: java -jar Ribbit.jar [fileName].txt");
             System.exit(2);
         }
         else if (args.length == 1) {
             try {
                 runFile(args[0]);
-            } catch (IOException ex) {
+            } catch (IOException ex) { // if file does not exist
                 System.out.println("Error: txt file not found!");
                 hasError = true;
             }
-            if (hasError) {
+            if (hasError) { // compile-time error
                 System.exit(3);
             }
-            if (hasRuntimeError) {
+            if (hasRuntimeError) { // runtime error
                 System.exit(4);
             }
         }
     }
 
     public static void runFile(String path) throws FileNotFoundException, IOException {
-        byte[] bytes = Files.readAllBytes(Paths.get(path));
+        byte[] bytes = Files.readAllBytes(Paths.get(path)); // converts raw source code into string
         String src = new String(bytes);
         Tokenizer tokenizer = new Tokenizer(src);
-        tokenizer.scan();
-        if (hasError) {
+        tokenizer.scan(); // scans tokens, generating token list
+        if (hasError) { // exits out of program if compilation error while tokenizing
             return;
         }
         Parser parser = new Parser(tokenizer.getTokens());
-        List<Statement> statements = parser.parse();
-        if (hasError) {
+        List<Statement> statements = parser.parse(); // parses tokens to form AST
+        if (hasError) { // exits out of program is compilation error while parsing
             return;
         }
-        interpreter.interpret(statements);
+        interpreter.interpret(statements); // executes AST
     }
+
+    // Everything below is for error reporting
 
     public static void error(int line, String msg) {
         hasError = true;

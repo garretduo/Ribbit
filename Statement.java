@@ -6,6 +6,10 @@ Compiler Project */
 import java.util.*;
 
 abstract class Statement {
+    public abstract <R> R accept(Visitor<R> visitor);
+
+    // fancy visitor pattern stuff that allows interpreter to access statements
+
     public interface Visitor<R> {
         R visitExpressionStmt(ExprStmt stmt);
         R visitDispStmt(Disp stmt);
@@ -15,7 +19,7 @@ abstract class Statement {
         R visitWhileStmt(WhileStmt stmt);
     }
 
-    public abstract <R> R accept(Visitor<R> visitor);
+    // a bunch of statement classes; each one contains enough info for the interpreter to execute it
 
     public static class ExprStmt extends Statement {
         private final Expression expression;
@@ -35,9 +39,11 @@ abstract class Statement {
 
     public static class Disp extends Statement {
         private final Expression expression;
+        private final boolean newLine;
 
-        public Disp(Expression expression) {
+        public Disp(Expression expression, boolean newLine) {
             this.expression = expression;
+            this.newLine = newLine;
         }
 
         public <R> R accept(Visitor<R> visitor) {
@@ -46,6 +52,10 @@ abstract class Statement {
 
         public Expression getExpression() {
             return expression;
+        }
+
+        public boolean isNewLine() {
+            return newLine;
         }
     }
 

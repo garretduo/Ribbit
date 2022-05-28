@@ -6,9 +6,12 @@ Compiler Project */
 import java.util.*;
 
 class Tokenizer {
+
+    // converts source code string into tokens
+
     private List<Token> tokenList;
     private String source;
-    private int line;
+    private int line; // keeps track of line for error reporting purposes
 
     public Tokenizer(String source) {
         tokenList = new ArrayList<Token>();
@@ -20,24 +23,34 @@ class Tokenizer {
         int srcLen = source.length();
         for (int i = 0; i < srcLen; i++) {
             char cur = source.charAt(i);
-            if (cur == '#') {
-                while (source.charAt(i) != '\n') {
+            if (cur == '#') { // single-line comments; ignore text until next line
+                while (i < srcLen && source.charAt(i) != '\n') {
                     i++;
                 }
+                line++;
             }
-            else if (cur == '@') {
-                while (i < srcLen - 1 && source.charAt(i + 1) != '@') {
+            else if (cur == '@') { // multi-line comments; ignore text until next occurrence of '@'
+                i++;
+                while (i < srcLen && source.charAt(i) != '@') {
                     if (source.charAt(i) == '\n') {
                         line++;
                     }
                     i++;
                 }
-                i++;
                 if (i >= srcLen) {
-                    Ribbit.error(line, "Expected '@' to end comment!");
+                    Ribbit.error(line, "Expected '@' to end comment!"); // reached end of code but no closing '@'
                     return;
                 }
             }
+            // next two branches deal with ignoring whitespaces
+            else if (cur == ' ' || cur == '\r' || cur == '\t') {
+                continue;
+            }
+            else if (cur == '\n') {
+                line++; // tracking our lines accurately
+                continue;
+            }
+            // everything below is single-character token scanning
             else if (cur == ':') {
                 tokenList.add(new Token(TokenType.COLON, ":", null, line));
             }
@@ -83,6 +96,7 @@ class Tokenizer {
             else if (cur == '%' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.MOD, "%", null, line));
             }
+            // everything below is double-character token scanning
             else if (cur == '+' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
                 tokenList.add(new Token(TokenType.PLUS_EQUAL, "+=", null, line));
                 i++;
@@ -103,6 +117,7 @@ class Tokenizer {
                 tokenList.add(new Token(TokenType.MOD_EQUAL, "%=", null, line));
                 i++;
             }
+            // nvm, some more single-character token scanning
             else if (cur == '!' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.EXCLAM, "!", null, line));
             }
@@ -115,6 +130,7 @@ class Tokenizer {
             else if (cur == '<' && i + 1 != srcLen && source.charAt(i + 1) != '=') {
                 tokenList.add(new Token(TokenType.LESS, "<", null, line));
             }
+            // back to double-character token scanning
             else if (cur == '!' && i + 1 != srcLen && source.charAt(i + 1) == '=') {
                 tokenList.add(new Token(TokenType.EXCLAM_EQUAL, "!=", null, line));
                 i++;
@@ -131,48 +147,46 @@ class Tokenizer {
                 tokenList.add(new Token(TokenType.LESS_EQUAL, ">=", null, line));
                 i++;
             }
-            else if (cur == ' ' || cur == '\r' || cur == '\t') {
-                continue;
-            }
-            else if (cur == '\n') {
-                line++;
-                continue;
-            }
-            else if (cur == '"') {
-                i = makeString(i);
-                if (i == -1) {
+            else if (cur == '"') { // '"' signifies the beginning of a string
+                i = makeString(i); // call string helper method
+                if (i == -1) { // if makeString returns -1, string never ended
                     return;
                 }
             }
-            else if (isDigit(cur)) {
-                long x = makeNumber(i);
-                if (x != -1) {
+            else if (isDigit(cur)) { // any digit signifies the beginning of a number (unless enclosed by quotes)
+                long x = makeNumber(i); // call number helper method
+                if (x != -1) { // if makeNumber returns -1, error encountered
                     int y = String.valueOf(x).length() - 1;
-                    i += y;
+                    i += y; // lets us know length of number to advance pointer by
                 }
-                if (i + 1 < source.length() && Character.isLetter(source.charAt(i + 1))) {
+                if (i + 1 < source.length() && Character.isLetter(source.charAt(i + 1))) { // variables like '1a' are disallowed
                     Ribbit.error(line, "Cannot declare or reference variable with non-letter starting character!");
                 }
             }
             else {
-                i = scanKeyword(i) - 1;
+                i = scanKeyword(i) - 1; // call keyword/identifier helper method
             }
         }
     }
 
     public int makeString(int start) {
         int end = -1;
-        for (int i = start + 1; i < source.length(); i++) {
+        int newLines = 0;
+        for (int i = start + 1; i < source.length(); i++) { // keeps iterating until another '"' encountered
+            if (source.charAt(i) == '\n') {
+                newLines++;
+            }
             if (source.charAt(i) == '"') {
                 end = i;
                 i = source.length();
             }
         }
-        if (end == -1) {
+        if (end == -1) { // never found a closing '"'
             Ribbit.error(line, "Unterminated string.");
             return -1;
         }
-        String val = source.substring(start + 1, end);
+        String val = source.substring(start + 1, end); // creates the string between opening and ending '"'
+        line += newLines;
         tokenList.add(new Token(TokenType.STRING, val, val, line));
         return end;
     }
@@ -183,21 +197,26 @@ class Tokenizer {
 
     public long makeNumber(int start) {
         int end = -1;
+        int newLines = 0;
         for (int i = start + 1; i <= source.length(); i++) {
-            if (i == source.length()) {
+            if (source.charAt(i) == '\n') {
+                newLines++;
+            }
+            if (i == source.length()) { // if reached end, terminate number
                 i = source.length() + 1;
                 end = i - 1;
             }
-            else if (!isDigit(source.charAt(i))) {
+            else if (!isDigit(source.charAt(i))) { // if found non-digit, terminate number
                 end = i;
                 break;
             }
         }
-        long longVal = -1;
+        long longVal = -1; // opted for long to circumvent IntegerOutOfBoundsExceptions
         if (end > start) {
             String val = source.substring(start, end).trim();
             try {
                 longVal = Long.valueOf(val);
+                line += newLines;
                 tokenList.add(new Token(TokenType.NUMBER, val, longVal, line));
             } catch (NumberFormatException ex) {
                 Ribbit.error(line, "Integer out of bounds!");
@@ -207,14 +226,20 @@ class Tokenizer {
     }
 
     public int scanKeyword(int start) {
+        int newLines = 0;
         String cur = "";
         int i = start;
-        for (; i < source.length() && !isWhitespace(source.charAt(i)) && Character.isLetterOrDigit(source.charAt(i)); i++) {
+        for (; i < source.length() && !isWhitespace(source.charAt(i)) && Character.isLetterOrDigit(source.charAt(i)); i++) { // assume all are identifiers first
+            if (source.charAt(i) == '\n') {
+                newLines++;
+            }
             cur += source.substring(i, i + 1);
         }
+        line += newLines;
         Token temp = new Token(TokenType.IDENTIFIER, cur, null, line);
-        String[] reserved = {"if", "else", "and", "or", "true", "false", "disp", "input", "return", "let", "for", "while", "then", "do"};
-        TokenType[] resTokenType = {TokenType.IF, TokenType.ELSE, TokenType.AND, TokenType.OR, TokenType.TRUE, TokenType.FALSE, TokenType.DISP, TokenType.INPUT, TokenType.RETURN, TokenType.LET, TokenType.FOR, TokenType.WHILE, TokenType.THEN, TokenType.DO};
+        // if identifier is any of reserved, switch type to keyword instead
+        String[] reserved = {"if", "else", "and", "or", "true", "false", "disp", "displn", "input", "return", "let", "for", "while", "then", "do"};
+        TokenType[] resTokenType = {TokenType.IF, TokenType.ELSE, TokenType.AND, TokenType.OR, TokenType.TRUE, TokenType.FALSE, TokenType.DISP, TokenType.DISPLN, TokenType.INPUT, TokenType.RETURN, TokenType.LET, TokenType.FOR, TokenType.WHILE, TokenType.THEN, TokenType.DO};
         String lexeme = temp.getLexeme();
         for (int j = 0; j < reserved.length; j++) {
             if (reserved[j].equals(lexeme)) {

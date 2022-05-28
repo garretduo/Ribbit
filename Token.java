@@ -4,6 +4,9 @@ Period 4
 Compiler Project */
 
 class Token {
+
+    // stores some useful info on tokens for use between tokenizing and parsing steps
+
     private TokenType type;
     private final String lexeme;
     private final Object literal;

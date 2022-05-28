@@ -6,6 +6,23 @@ Compiler Project */
 abstract class Expression {
     public abstract <R> R accept(Visitor<R> visitor);
 
+    // fancy visitor pattern stuff that allows interpreter to access statements
+
+    public interface Visitor<R> {
+        public R visitBinary(Binary binary);
+        public R visitGrouping(Grouping grouping);
+        public R visitLiteral(Literal literal);
+        public R visitNegator(Negator negator);
+        public R visitVariable(Variable variable);
+        public R visitAssign(Assign assign);
+        public R visitLogic(Logic logic);
+        public R visitInput(Input input);
+        public R visitArrayAccess(ArrayAccess arrayAcc);
+        public R visitLength(Length length);
+    }   
+
+    // a bunch of expression classes; each one contains enough info for the interpreter to execute it
+
     public static class Binary extends Expression {
         private final Expression left;
         private final Token operator;
@@ -52,9 +69,11 @@ abstract class Expression {
 
     public static class Literal extends Expression {
         private final Object value;
+        private final int lineRef;
 
-        public Literal(Object value) {
+        public Literal(Object value, int lineRef) {
             this.value = value;
+            this.lineRef = lineRef;
         }
 
         public <Literal> Literal accept(Visitor<Literal> visitor) {
@@ -63,6 +82,10 @@ abstract class Expression {
 
         public Object getValue() {
             return value;
+        }
+
+        public int getLine() {
+            return lineRef;
         }
     }
 
@@ -105,20 +128,12 @@ abstract class Expression {
     }
 
     public static class Assign extends Expression {
-        private Token name;
+        private Expression name;
         private Expression val;
-        private Token index;
 
-        public Assign(Token name, Expression val) {
+        public Assign(Expression name, Expression val) {
             this.name = name;
             this.val = val;
-            this.index = null;
-        }
-
-        public Assign(Token name, Expression val, Token index) {
-            this.name = name;
-            this.val = val;
-            this.index = index;
         }
 
         @Override
@@ -126,16 +141,12 @@ abstract class Expression {
             return visitor.visitAssign(this);
         }
 
-        public Token getName() {
+        public Expression getName() {
             return name;
         }
 
         public Expression getVal() {
             return val;
-        }
-
-        public Token getIndex() {
-            return index;
         }
     }
 
@@ -170,9 +181,11 @@ abstract class Expression {
 
     public static class Input extends Expression {
         private Object value;
+        private final int lineRef;
 
-        public Input(Object value) {
+        public Input(Object value, int lineRef) {
             this.value = value;
+            this.lineRef = lineRef;
         }
 
         public <Input> Input accept(Visitor<Input> visitor) {
@@ -183,16 +196,20 @@ abstract class Expression {
             return value;
         }
 
+        public int getLine() {
+            return lineRef;
+        }
+
         public void setValue(Object value) {
             this.value = value;
         }
     }
 
     public static class ArrayAccess extends Expression {
-        private final Token index;
+        private final Expression index;
         private final Token name;
 
-        public ArrayAccess(Token index, Token name) {
+        public ArrayAccess(Expression index, Token name) {
             this.index = index;
             this.name = name;
         }
@@ -202,7 +219,7 @@ abstract class Expression {
             return visitor.visitArrayAccess(this);
         }
 
-        public Token getIndex() {
+        public Expression getIndex() {
             return index;
         }
 
@@ -211,33 +228,20 @@ abstract class Expression {
         }
     }
 
-    public static class ArrayLength extends Expression {
-        private final Token name;
+    public static class Length extends Expression {
+        private final Expression right;
 
-        public ArrayLength(Token name) {
-            this.name = name;
+        public Length(Expression right) {
+            this.right = right;
         }
 
         @Override
         public <R> R accept(Expression.Visitor<R> visitor) {
-            return visitor.visitArrayLength(this);
+            return visitor.visitLength(this);
         }
 
-        public Token getName() {
-            return name;
+        public Expression getRight() {
+            return right;
         }
     }
-
-    public interface Visitor<R> {
-        public R visitBinary(Binary binary);
-        public R visitGrouping(Grouping grouping);
-        public R visitLiteral(Literal literal);
-        public R visitNegator(Negator negator);
-        public R visitVariable(Variable variable);
-        public R visitAssign(Assign assign);
-        public R visitLogic(Logic logic);
-        public R visitInput(Input input);
-        public R visitArrayAccess(ArrayAccess arrayAcc);
-        public R visitArrayLength(ArrayLength arrayLen);
-    }   
 }
