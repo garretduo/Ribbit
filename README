@@ -5,10 +5,9 @@
                               by Garret Duo
 
 README
-    Ribbit is a dynamically typed programming language that I made for my AP
-    Comp. Sci. A class. It's reasonably fleshed out, except without functions 
-    or classes or anything you'd expect from a complete, modern-day language.
-    Not to worry though, I might add that in the future. 
+    Ribbit is a dynamically typed programming language that I made for fun!
+    It's reasonably fleshed out, except without functions or classes. Not 
+    to worry though, that's all for the future. 
     
     For now, it supports variables, basic expressions, if and else 
     conditionals, while and for loops, and a couple other fundamental features. 
